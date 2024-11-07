@@ -1,0 +1,20 @@
+clc;
+clear ;
+close all;
+Read and resize
+net=alexnet
+layers=net.Layers
+imds=imageDatastore('D:\harish\AI\screw’,...
+'IncludeSubfolders',true,'LabelSource','foldernames')
+[trainIm,testIm]=splitEachLabel(imds,0.8)
+traindata=augmentedImageDatastore([227 227 3],trainIm)
+testdata=augmentedImageDatastore([227 227 3],testIm)
+trainfeatures=activations(net,traindata, ...
+'fc7','OutputAs','rows');
+testfeatures=activations(net,testdata, ...
+'fc7','OutputAs','rows');
+classifier=fitcknn(trainfeatures,trainIm.Labels)
+predLabels=predict(classifier,testfeatures)
+numcorrect=nnz(predLabels==testIm.Labels)
+acc=numcorrect/numel(predLabels)
+confusionchart(testIm.Labels,predLabels)
