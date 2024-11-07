@@ -1,0 +1,16 @@
+clc
+clear all
+close all
+%%Loading the YOLOv4 object detector
+name = "csp-darknet53-coco"
+detector = yolov4ObjectDetector(name)
+disp(detector)
+%%Analysing the detector network
+analyzeNetwork(detector.Network)
+%%Testing the architecture
+img = imread("F:\road.jpg")
+imRes = imresize(img,[608 608])
+[bboxes,scores,labels] = detect(detector,imRes)
+detectedImg = insertObjectAnnotation(imRes,"Rectangle",bboxes,labels)
+figure
+imshow(detectedImg)
