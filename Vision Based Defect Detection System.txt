@@ -1,0 +1,34 @@
+clc
+clear all
+close all
+%loading the pre-trained network
+net = alexnet
+%obtain the layer details in Alexnet
+layers = net.Layers
+%obtain the first layer complete details
+inputLayer = layers(1)
+%obtain the last layer complete details
+outputLayer = layers(end)
+%check the nature of classes for which alexnet is pre-trained
+classes = outputLayer.Classes
+%load the defect detection dataset
+imds=imageDatastore('D:\matlab\harish\ring-Defective-Detection-and-Classification-master\ringDefective-Detection-and-Classificationmaster\data\train','IncludeSubfolders',true,'LabelSource','foldernames')
+%count the images in each lebel of subfolders
+tbl = countEachLabel(imds);
+%split the images into training 80% and testing 20%
+[trainIm,testIm] = splitEachLabel(imds,0.8)
+%resize the images according the Alexnet input layer size
+imageSize = net.Layers(1).InputSize;
+trainData=augmentedImageDatastore(imageSize,trainIm,"ColorPreprocessing","gray2rgb")
+testData=augmentedImageDatastore(imageSize,testIm,"ColorPreprocessing","gray2rgb")
+%change the output classes to the defect detection dataset classes
+layers(23) = fullyConnectedLayer(2)
+layers(end) = classificationLayer()
+%mention the training options
+options = trainingOptions("sgdm","Plots","training-progress","InitialLearnRate",1e4,"MaxEpochs",10);
+%train the Alexnet for the defect detection dataset
+defectnet = trainNetwork(trainData,layers,options);
+%validate the trained network using test data and plot the confusion matrix
+testPred = classify(defectnet,testData)
+testAcc = nnz(testPred == testIm.Labels)/numel(testPred)
+plotconfusion(testIm.Labels,testPred)
