@@ -1,0 +1,46 @@
+clc;
+clear;
+close all;
+Loading the vgg16 pretrained network
+net=vgg16
+layers=net.Layers
+inputLayer=layers(1)
+outputLayer=layers(end)
+classes=outputLayer.Classes
+Dataset
+imds=imageDatastore('D:\Harish\AI\mech parts',...
+'IncludeSubfolders',true,'LabelSource','foldernames')
+Split
+[trainIm,testIm]=splitEachLabel(imds,0.7)
+Resize
+traindata=augmentedImageDatastore([224 224 3],trainIm',
+ColorPreprocessing="gray2rgb")
+testdata=augmentedImageDatastore([224 224
+3],testIm,ColorPreprocessing="gray2rgb")
+modify
+layers(39)=fullyConnectedLayer(4)
+layers(end)=classificationLayer()
+options=trainingOptions("adam","Plots","training-progress", ...
+"InitialLearnRate",0.001 ,...
+"MaxEpochs",5);
+defectnet=trainNetwork(traindata,layers,options);
+Test
+testpred=classify(defectnet,testdata)
+testAcc=nnz(testpred == testIm.Labels)/numel(testpred)
+cm=plotconfusion(testIm.Labels,testpred)
+% Load the image
+img = imread('path/to/image.jpg');
+% Resize the image to 224x224x3
+img = imresize(img, [224 224]);
+% Convert the image to a datastore
+img_ds = augmentedImageDatastore([224 224 3], img,
+ColorPreprocessing="gray2rgb");
+
+% Get the predicted label for the image
+pred = classify(defectnet, img_ds);
+% Get the index of the maximum probability
+[~, idx] = max(pred);
+% Get the corresponding label
+label = classes(idx);
+% Display the label
+fprintf('The image is classified as: %s\n', label);
