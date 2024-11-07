@@ -1,0 +1,16 @@
+clc
+clear all
+close all
+%%Loading the image dataset
+imds = imageDatastore('F:\BEST-SASTRA\AI\test',...
+'IncludeSubfolders',true)
+imshow(read(imds))
+%%Define the transformation for augmentation
+aug = imageDataAugmenter('RandXReflection',...
+true,'RandXScale',[1 1.2],'RandRotation',[0,360])
+%%Perform image augmentation
+augds = augmentedImageDatastore([227 227],...
+imds,'DataAugmentation',aug)
+%%Read the augmented image dataset
+mb = read(augds);
+imshow(mb.input{5})
